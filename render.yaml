@@ -24,19 +24,19 @@ services:
         sync: false
 
       - key: DB_CONNECTION
-        value: pgsql
+        value: mysql
       - key: DB_HOST
         sync: false
       - key: DB_PORT
-        value: "5432"
+        value: "4000"
       - key: DB_DATABASE
         sync: false
       - key: DB_USERNAME
         sync: false
       - key: DB_PASSWORD
         sync: false
-      - key: DB_SSLMODE
-        value: require
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
 
       - key: CACHE_STORE
         value: database
