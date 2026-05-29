@@ -32,4 +32,4 @@ COPY --from=assets /app/public/build ./public/build
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "mkdir -p bootstrap/cache storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views; php artisan storage:link || true; php artisan migrate --force || true; php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"]
+CMD ["sh", "-c", "mkdir -p bootstrap/cache storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views; php artisan storage:link || true; php artisan migrate --force || true; if [ \"${RUN_AUTH_SEED:-false}\" = \"true\" ]; then php artisan db:seed --class=Database\\Seeders\\AuthUsersSeeder --force || true; fi; php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"]
