@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Http\Requests\Admin;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class HomeProductCarouselRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'title' => ['required', 'string', 'max:160'],
+            'subtitle' => ['nullable', 'string', 'max:220'],
+            'sort_order' => ['required', 'integer', 'min:1', 'max:99'],
+            'is_active' => ['nullable', 'boolean'],
+            'image_file' => [$this->route('homeProductCarousel') ? 'nullable' : 'required', 'image', 'max:5120'],
+            'product_ids' => ['required', 'array', 'min:1', 'max:20'],
+            'product_ids.*' => ['integer', 'distinct', 'exists:products,id'],
+        ];
+    }
+}

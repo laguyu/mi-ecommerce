@@ -1,0 +1,78 @@
+services:
+  - type: web
+    name: mi-ecommerce
+    runtime: php
+    plan: free
+    autoDeploy: true
+    rootDir: .
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      npm install
+      npm run build
+    startCommand: php artisan serve --host 0.0.0.0 --port $PORT
+    healthCheckPath: /login
+    envVars:
+      - key: APP_NAME
+        value: Mi Ecommerce
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+
+      - key: FILESYSTEM_DISK
+        value: local
+
+      - key: MAIL_MAILER
+        value: log
+      - key: MAIL_FROM_ADDRESS
+        value: no-reply@example.com
+      - key: MAIL_FROM_NAME
+        value: Mi Ecommerce
+
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_CURRENCY
+        value: usd
+      - key: STRIPE_WEBHOOK_TOLERANCE
+        value: "300"
+
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_MODE
+        value: sandbox
+      - key: PAYPAL_CURRENCY
+        value: USD
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
