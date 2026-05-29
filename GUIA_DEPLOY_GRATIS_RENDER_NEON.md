@@ -67,6 +67,7 @@ DB_PASSWORD=TU_PASSWORD_TIDB
 
 # Si el proveedor exige SSL (normalmente si)
 MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt
+Importante: escribe esta ruta sin comillas y sin punto al final.
 
 CACHE_STORE=database
 SESSION_DRIVER=database
