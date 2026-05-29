@@ -8,10 +8,10 @@ use App\Http\Requests\Admin\OrderFilterRequest;
 use App\Http\Requests\Admin\OrderStatusRequest;
 use App\Models\Order;
 use App\Services\OrderNotificationService;
+use App\Support\DatabaseEngine;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -31,7 +31,7 @@ class OrderController extends Controller
             ->with('user:id,name,email')
             ->with('items:id,order_id,product_name,quantity,line_total')
             ->when($search !== '', function ($query) use ($search) {
-                if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true) && mb_strlen($search) >= 3) {
+                if (DatabaseEngine::supportsFullText() && mb_strlen($search) >= 3) {
                     $query->whereFullText(['order_number', 'customer_email', 'customer_full_name'], $search);
                     return;
                 }
@@ -86,7 +86,7 @@ class OrderController extends Controller
             ->with('user:id,name,email')
             ->with('items:id,order_id,product_name,quantity,line_total')
             ->when($search !== '', function ($query) use ($search) {
-                if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true) && mb_strlen($search) >= 3) {
+                if (DatabaseEngine::supportsFullText() && mb_strlen($search) >= 3) {
                     $query->whereFullText(['order_number', 'customer_email', 'customer_full_name'], $search);
 
                     return;
