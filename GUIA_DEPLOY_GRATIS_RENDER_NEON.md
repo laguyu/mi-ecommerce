@@ -37,21 +37,15 @@ Nota: en planes free la app puede entrar en modo sleep por inactividad.
 1. En Render: New + Web Service.
 2. Conecta tu repo de GitHub.
 3. Configura:
-   - Runtime: PHP
+   - Runtime: Docker (si en tu cuenta no aparece PHP, Docker es la opcion recomendada)
    - Branch: main (o la tuya)
-   - Build Command:
-
-```bash
-composer install --no-dev --optimize-autoloader; npm install; npm run build
-```
-
-   - Start Command:
-
-```bash
-php artisan serve --host 0.0.0.0 --port $PORT
-```
+   - Build y start se toman del Dockerfile del repositorio.
 
 4. Plan: Free.
+
+Nota rapida si no ves PHP en Render UI:
+- Es normal en algunas cuentas/interfaces nuevas.
+- El despliegue por Docker evita depender del listado de lenguajes y funciona igual para Laravel.
 
 ## 5) Variables de entorno en Render (Environment)
 
