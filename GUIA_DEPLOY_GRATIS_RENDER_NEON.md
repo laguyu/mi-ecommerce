@@ -7,7 +7,7 @@ Incluye una opcion real para MySQL compatible en Render: TiDB Cloud Serverless.
 
 - App web: Render (Web Service, plan Free).
 - Base de datos: TiDB Cloud Serverless (Free tier, compatible con protocolo MySQL).
-- Archivos/imagenes (opcional recomendado): Cloudinary free o S3 compatible free.
+- Archivos/imagenes: almacenamiento local en Render (sin servicios externos).
 
 Nota: en planes free la app puede entrar en modo sleep por inactividad.
 
@@ -72,7 +72,7 @@ CACHE_STORE=database
 SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 
-FILESYSTEM_DISK=local
+FILESYSTEM_DISK=public
 
 MAIL_MAILER=log
 MAIL_FROM_ADDRESS=no-reply@tu-dominio.com
@@ -96,6 +96,36 @@ Notas:
 - En TiDB el puerto habitual es 4000.
 - Si no vas a usar correos al inicio, MAIL_MAILER=log evita bloqueos.
 - Si no conecta por TLS, revisa la seccion de SSL de config/database.php para validar MYSQL_ATTR_SSL_CA.
+
+## 5.1) Carpeta de imagenes (storage) y enlace al sistema
+
+Laravel guarda imagenes publicas en `storage/app/public` y las sirve por `public/storage`.
+
+En este repositorio ya queda automatizado en Docker al arrancar:
+- crear `storage/app/public` si no existe
+- ejecutar `php artisan storage:link`
+
+Si quieres verificar manualmente en Shell de Render:
+
+```bash
+mkdir -p storage/app/public/products
+php artisan storage:link
+ls -la public
+```
+
+Para subir tus imagenes existentes (desde tu maquina local) a produccion:
+1. Copia tus archivos a `storage/app/public` en local.
+2. Haz commit y push de esos archivos al repo.
+3. Redeploy en Render.
+
+Ejemplo de rutas finales:
+- Archivo fisico: `storage/app/public/products/foto1.jpg`
+- URL publica: `https://TU-SERVICIO.onrender.com/storage/products/foto1.jpg`
+
+Importante:
+- En plan free de Render, el filesystem es efimero para archivos subidos en tiempo real.
+- Si los usuarios suben imagenes desde el panel, se pueden perder al redeploy/restart.
+- Esta opcion evita costos de terceros, pero prioriza costo cero por encima de persistencia total.
 
 ## 6) Generar APP_KEY antes del deploy
 
@@ -161,11 +191,10 @@ Configura estas rutas en los paneles de Stripe y PayPal, y actualiza:
 
 Con FILESYSTEM_DISK=local, los archivos en algunos entornos free pueden no ser persistentes al redeploy.
 
-Recomendacion MVP:
-- Mantenerlo asi para pruebas rapidas.
-
-Recomendacion para estabilidad:
-- Migrar imagenes a Cloudinary o S3 compatible cuando pases a etapa productiva.
+Recomendacion para mantener costo cero y sin riesgo de pago:
+- Mantener FILESYSTEM_DISK=public en Render.
+- Subir imagenes base via repo.
+- Evitar uploads criticos de usuarios (pueden perderse al redeploy/restart).
 
 ## 11) Checklist rapido (orden sugerido)
 
@@ -208,7 +237,7 @@ Recomendacion para estabilidad:
 ## 14) Recomendacion final para tu caso
 
 Para salir rapido sin pagar:
-- Render + TiDB Cloud + dominio del proveedor.
+- Render + TiDB Cloud + storage local de Render + dominio del proveedor.
 
 Cuando tengas primeras ventas:
 - pasar a plan pago basico,

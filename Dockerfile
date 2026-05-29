@@ -32,4 +32,4 @@ COPY --from=assets /app/public/build ./public/build
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"]
+CMD ["sh", "-c", "mkdir -p storage/app/public; php artisan storage:link || true; php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"]

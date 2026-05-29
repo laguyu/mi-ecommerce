@@ -41,7 +41,7 @@ services:
         value: database
 
       - key: FILESYSTEM_DISK
-        value: local
+        value: public
 
       - key: MAIL_MAILER
         value: log
