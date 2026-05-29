@@ -36,11 +36,11 @@ services:
         value: /etc/ssl/certs/ca-certificates.crt
 
       - key: CACHE_STORE
-        value: database
+        value: file
       - key: SESSION_DRIVER
-        value: database
+        value: file
       - key: QUEUE_CONNECTION
-        value: database
+        value: sync
 
       - key: FILESYSTEM_DISK
         value: public

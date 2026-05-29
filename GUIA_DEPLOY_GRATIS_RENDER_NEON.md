@@ -69,9 +69,9 @@ DB_PASSWORD=TU_PASSWORD_TIDB
 MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt
 Importante: escribe esta ruta sin comillas y sin punto al final.
 
-CACHE_STORE=database
-SESSION_DRIVER=database
-QUEUE_CONNECTION=database
+CACHE_STORE=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
 
 FILESYSTEM_DISK=public
 
@@ -141,11 +141,14 @@ Copia el valor generado y pegalo en APP_KEY de Render.
 
 ## 7) Migraciones y seeders en produccion
 
-Cuando el servicio ya este creado, abre Shell en Render y ejecuta:
+En Render Free normalmente no hay Shell disponible.
+Por eso este repositorio ya queda preparado para ejecutar automaticamente:
 
 ```bash
 php artisan migrate --force
 ```
+
+durante el arranque del contenedor.
 
 Si necesitas datos de prueba iniciales:
 
@@ -174,6 +177,8 @@ Si cambias variables de entorno, limpia cache:
 ```bash
 php artisan optimize:clear
 ```
+
+En Render Free, si no tienes Shell, basta con hacer redeploy despues de cambiar variables.
 
 ## 9) Webhooks de pagos en entorno publico
 

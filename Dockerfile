@@ -32,4 +32,4 @@ COPY --from=assets /app/public/build ./public/build
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "mkdir -p bootstrap/cache storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views; php artisan storage:link || true; php artisan optimize:clear || true; php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"]
+CMD ["sh", "-c", "mkdir -p bootstrap/cache storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views; php artisan storage:link || true; php artisan optimize:clear || true; php artisan migrate --force || exit 1; php artisan serve --host 0.0.0.0 --port ${PORT:-10000}"]
