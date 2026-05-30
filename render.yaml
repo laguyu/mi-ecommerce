@@ -56,7 +56,11 @@ services:
         value: public
 
       - key: MAIL_MAILER
-        value: log
+        value: smtp
+      - key: MAIL_HOST
+        value: in-v3.mailjet.com
+      - key: MAIL_PORT
+        value: "587"
       - key: MAIL_SCHEME
         value: tls
       - key: MAIL_FROM_ADDRESS

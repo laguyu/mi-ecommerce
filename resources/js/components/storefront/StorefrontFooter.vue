@@ -5,74 +5,6 @@ const props = defineProps({
     siteSettings: { type: Object, default: () => ({}) },
 });
 
-const bankTransferAccounts = computed(() => {
-    const settings = props.siteSettings || {};
-    const rawAccounts = Array.isArray(settings.bank_accounts) ? settings.bank_accounts : [];
-
-    const normalizedAccounts = rawAccounts
-        .map((account) => {
-            const bankName = String(account?.bank_name || '').trim();
-            const accountHolder = String(account?.account_holder || '').trim();
-            const accountNumber = String(account?.account_number || '').trim();
-            const accountType = String(account?.account_type || '').trim();
-            const phonesRaw = String(account?.phones || '').trim();
-            const referenceNote = String(account?.reference_note || '').trim();
-
-            return {
-                bankName,
-                accountHolder,
-                accountNumber,
-                accountType,
-                phones: phonesRaw
-                    .split(',')
-                    .map((phone) => phone.trim())
-                    .filter(Boolean),
-                referenceNote,
-            };
-        })
-        .filter((account) => {
-            return Boolean(
-                account.bankName ||
-                account.accountHolder ||
-                account.accountNumber ||
-                account.accountType ||
-                account.phones.length > 0 ||
-                account.referenceNote
-            );
-        });
-
-    if (normalizedAccounts.length > 0) {
-        return normalizedAccounts;
-    }
-
-    const legacyBankName = String(settings.bank_name || '').trim();
-    const legacyAccountHolder = String(settings.bank_account_holder || '').trim();
-    const legacyAccountNumber = String(settings.bank_account_number || '').trim();
-    const legacyAccountType = String(settings.bank_account_type || '').trim();
-    const legacyPhone = String(settings.bank_phone || '').trim();
-    const legacyReferenceNote = String(settings.bank_reference_note || '').trim();
-
-    if (
-        !legacyBankName &&
-        !legacyAccountHolder &&
-        !legacyAccountNumber &&
-        !legacyAccountType &&
-        !legacyPhone &&
-        !legacyReferenceNote
-    ) {
-        return [];
-    }
-
-    return [{
-        bankName: legacyBankName,
-        accountHolder: legacyAccountHolder,
-        accountNumber: legacyAccountNumber,
-        accountType: legacyAccountType,
-        phones: legacyPhone ? [legacyPhone] : [],
-        referenceNote: legacyReferenceNote,
-    }];
-});
-
 const newsletterEmail = ref('');
 const newsletterLoading = ref(false);
 const newsletterMessage = ref('');
@@ -142,20 +74,6 @@ async function subscribeNewsletter() {
                 <div class="site-footer__contact-list">
                     <p v-if="siteSettings.footer_phone" class="site-footer__value">Teléfono: {{ siteSettings.footer_phone }}</p>
                     <p v-if="siteSettings.footer_email" class="site-footer__value">Email: {{ siteSettings.footer_email }}</p>
-                </div>
-            </section>
-
-            <section v-if="bankTransferAccounts.length > 0" class="site-footer__panel">
-                <h4>Transferencias</h4>
-                <div class="site-footer__bank-list">
-                    <article v-for="(account, index) in bankTransferAccounts" :key="`${account.bankName}-${account.accountNumber}-${index}`" class="site-footer__bank-item">
-                        <p v-if="account.bankName" class="site-footer__value"><strong>{{ account.bankName }}</strong></p>
-                        <p v-if="account.accountHolder" class="site-footer__value">Titular: {{ account.accountHolder }}</p>
-                        <p v-if="account.accountNumber" class="site-footer__value">Cuenta: {{ account.accountNumber }}</p>
-                        <p v-if="account.accountType" class="site-footer__value">Tipo: {{ account.accountType }}</p>
-                        <p v-if="account.phones.length > 0" class="site-footer__value">Telefono(s): {{ account.phones.join(', ') }}</p>
-                        <p v-if="account.referenceNote" class="site-footer__value">{{ account.referenceNote }}</p>
-                    </article>
                 </div>
             </section>
 

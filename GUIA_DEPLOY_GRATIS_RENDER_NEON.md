@@ -86,6 +86,15 @@ STRIPE_WEBHOOK_SECRET=
 STRIPE_CURRENCY=usd
 STRIPE_WEBHOOK_TOLERANCE=300
 
+
+Si vas a usar Mailjet en produccion, en Render debes cargar manualmente:
+- MAIL_MAILER=smtp
+- MAIL_HOST=in-v3.mailjet.com
+- MAIL_PORT=587
+- MAIL_SCHEME=tls
+- MAIL_USERNAME=tu_public_key
+- MAIL_PASSWORD=tu_secret_key
+- MAIL_FROM_ADDRESS=correo_verificado_en_mailjet
 PAYPAL_CLIENT_ID=
 PAYPAL_CLIENT_SECRET=
 PAYPAL_MODE=sandbox
