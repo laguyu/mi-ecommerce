@@ -76,6 +76,7 @@ QUEUE_CONNECTION=sync
 FILESYSTEM_DISK=public
 
 MAIL_MAILER=log
+MAIL_SCHEME=tls
 MAIL_FROM_ADDRESS=no-reply@tu-dominio.com
 MAIL_FROM_NAME=Mi Ecommerce
 

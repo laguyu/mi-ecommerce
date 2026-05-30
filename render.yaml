@@ -57,6 +57,8 @@ services:
 
       - key: MAIL_MAILER
         value: log
+      - key: MAIL_SCHEME
+        value: tls
       - key: MAIL_FROM_ADDRESS
         value: no-reply@example.com
       - key: MAIL_FROM_NAME
