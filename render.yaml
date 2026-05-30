@@ -19,8 +19,12 @@ services:
         value: "true"
       - key: SESSION_SECURE_COOKIE
         value: "true"
+      - key: RUN_DEMO_SEED
+        value: "true"
       - key: RUN_AUTH_SEED
         value: "true"
+      - key: SEED_BULK_PRODUCTS_COUNT
+        value: "0"
       - key: APP_KEY
         sync: false
       - key: VIEW_COMPILED_PATH
