@@ -8,6 +8,7 @@ import './styles/storefront.css';
 import StorefrontHeader from './components/storefront/StorefrontHeader.vue';
 import HomeSection from './components/storefront/HomeSection.vue';
 import CatalogSection from './components/storefront/CatalogSection.vue';
+import ContactSection from './components/storefront/ContactSection.vue';
 import FavoritesSection from './components/storefront/FavoritesSection.vue';
 import ProductDetailSection from './components/storefront/ProductDetailSection.vue';
 import CartSection from './components/storefront/CartSection.vue';
@@ -123,6 +124,7 @@ onMounted(() => {
             :orders-url="storefrontOrdersUrl"
             :home-url="storefrontUrls.home || '/tienda/home'"
             :catalog-url="storefrontUrls.catalogo || '/tienda/catalogo'"
+            :contact-url="storefrontUrls.contacto || '/tienda/contacto'"
             :categories="catalogCategories"
             :favorites-url="storefrontUrls.favoritos || '/tienda/favoritos'"
             :favorites-count="favoritesCount"
@@ -152,6 +154,12 @@ onMounted(() => {
                 @open-product="openProductFromCatalog"
                 @add-to-cart="handleAddToCart"
                 @toggle-favorite="toggleFavorite"
+            />
+
+            <ContactSection
+                v-if="activeView === 'contacto'"
+                :site-settings="siteSettings"
+                @toast="pushToast"
             />
 
             <FavoritesSection

@@ -47,6 +47,10 @@ function readStorefrontLocation() {
         return { initialView: 'catalogo', initialProductId: null };
     }
 
+    if (pathname.endsWith('/tienda/contacto')) {
+        return { initialView: 'contacto', initialProductId: null };
+    }
+
     if (pathname.endsWith('/tienda/favoritos')) {
         return { initialView: 'favoritos', initialProductId: null };
     }

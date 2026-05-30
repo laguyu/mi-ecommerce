@@ -157,6 +157,15 @@ Metodos:
 - `destroy(NewsletterSubscriber $newsletterSubscriber): RedirectResponse`: elimina suscriptor.
 - `export(Request $request): BinaryFileResponse`: exporta a Excel (all/active/inactive).
 
+#### app/Http/Controllers/Admin/ContactMessageController.php
+Proposito:
+- Gestion de mensajes enviados desde el formulario publico de contacto.
+
+Metodos:
+- `index(Request $request): View`: listado con busqueda, filtro por estado y paginacion.
+- `show(ContactMessage $contactMessage): View`: detalle de un mensaje con estado y error de envio si existe.
+- `destroy(ContactMessage $contactMessage): RedirectResponse`: elimina un mensaje.
+
 #### app/Http/Controllers/Admin/OrderController.php
 Proposito:
 - Gestion administrativa de pedidos.
@@ -336,6 +345,11 @@ Metodos:
 Metodos propios:
 - No define metodos custom, usa Eloquent base.
 
+### app/Models/ContactMessage.php
+Metodos propios:
+- No define metodos custom, usa Eloquent base.
+- Campos relevantes: `status`, `recipient_email`, `sent_at`, `delivery_error`.
+
 ### app/Models/Order.php
 Metodos:
 - `items(): HasMany`
@@ -402,10 +416,24 @@ Archivos:
 - app/Http/Requests/Admin/SiteSettingRequest.php
 - app/Http/Requests/Admin/UserRoleRequest.php
 - app/Http/Requests/Admin/UserUpdateRequest.php
+- app/Http/Requests/ContactMessageRequest.php
 
 Notas especiales:
 - `CategoryRequest` incluye `descendantIds(...)` para evitar ciclos padre/hijo.
 - `SiteSettingRequest` incluye `withValidator(...)` para validar integridad de cuentas bancarias por fila.
+- `ContactMessageRequest` valida el formulario publico de contacto y no depende de autenticacion.
+- Las imagenes de productos usan un tope de 4 MB y 1600x1600 px maximo.
+- Las imagenes de banners, carruseles y promociones usan un tope de 3 MB y 1920x1080 px maximo.
+
+## 6.1. Correos
+
+### app/Mail/ContactMessageMail.php
+Proposito:
+- Construye el correo que se envia al email configurado en `footer_email` cuando llega un mensaje de contacto.
+
+Detalle:
+- Reutiliza `MailBrandingData` para mantener branding consistente.
+- Usa `replyTo` con el email del remitente para que el equipo pueda responder directo desde su cliente de correo.
 
 ## 6. Servicios
 

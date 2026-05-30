@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\ImageRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -37,7 +38,12 @@ class ProductRequest extends FormRequest
             'show_in_home_carousel' => ['nullable', 'boolean'],
             'home_carousel_order' => ['nullable', 'required_if:show_in_home_carousel,1', 'integer', 'min:1', 'max:99'],
             'image_files' => [$isUpdate ? 'nullable' : 'required', 'array', $isUpdate ? 'max:10' : 'min:1', 'max:10'],
-            'image_files.*' => ['image', 'max:5120'],
+            'image_files.*' => ImageRules::productImage(),
         ];
+    }
+
+    public function messages(): array
+    {
+        return ImageRules::productImageMessages();
     }
 }

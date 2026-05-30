@@ -80,6 +80,10 @@ MAIL_SCHEME=tls
 MAIL_FROM_ADDRESS=no-reply@tu-dominio.com
 MAIL_FROM_NAME=Mi Ecommerce
 
+Nota:
+- En local puedes usar Mailtrap con `MAIL_MAILER=smtp`, `MAIL_HOST=smtp.mailtrap.io`, `MAIL_PORT=2525` y `MAIL_ENCRYPTION=tls`; el proyecto normaliza ese esquema para que no rompa el transport SMTP.
+- En Render, si usas Mailjet, conserva `MAIL_SCHEME=tls`.
+
 STRIPE_SECRET_KEY=
 STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
