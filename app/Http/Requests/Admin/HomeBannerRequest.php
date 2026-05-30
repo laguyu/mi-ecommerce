@@ -13,7 +13,7 @@ class HomeBannerRequest extends FormRequest
 
     public function rules(): array
     {
-        $isUpdate = (bool) $this->route('homeBanner');
+        $isUpdate = $this->isMethod('put') || $this->isMethod('patch') || (bool) $this->route('home_banner');
 
         return [
             'title' => ['required', 'string', 'max:160'],
