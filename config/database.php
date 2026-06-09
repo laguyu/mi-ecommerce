@@ -65,8 +65,12 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-                'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => true,
+               'options' => extension_loaded('pdo_mysql') ? array_filter([
+                // Forzamos el uso del certificado CA nativo y universal en entornos Linux
+                PDO::MYSQL_ATTR_SSL_CA => is_file('/etc/ssl/certs/ca-certificates.crt')
+                    ? '/etc/ssl/certs/ca-certificates.crt'
+                    : true,
+                // Desactivamos la verificación estricta del nombre del host del certificado para evitar rechazos en nubes Serverless
                 PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
             ]) : [],
         ],
