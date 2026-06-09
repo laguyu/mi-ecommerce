@@ -24,13 +24,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-          if (isset($_ENV['VERCEL'])) {
+        if (isset($_ENV['VERCEL'])) {
             // Creamos las carpetas dinámicamente en el directorio temporal si no existen
             $paths = [
                 '/tmp/storage/framework/views',
                 '/tmp/storage/framework/cache',
                 '/tmp/storage/framework/sessions',
-                '/tmp/storage/bootstrap/cache'
+                '/tmp/storage/bootstrap/cache',
+                '/tmp/storage/app/public',
             ];
             foreach ($paths as $path) {
                 if (!is_dir($path)) {
@@ -42,6 +43,18 @@ class AppServiceProvider extends ServiceProvider
             Config::set('view.compiled', '/tmp/storage/framework/views');
             Config::set('cache.stores.file.path', '/tmp/storage/framework/cache');
             Config::set('session.files', '/tmp/storage/framework/sessions');
+
+            // En Vercel preferimos S3 si hay credenciales; si no, public queda en /tmp para evitar fallos de escritura.
+            $hasS3Credentials = filled(env('AWS_ACCESS_KEY_ID'))
+                && filled(env('AWS_SECRET_ACCESS_KEY'))
+                && filled(env('AWS_BUCKET'))
+                && filled(env('AWS_ENDPOINT'));
+
+            if ($hasS3Credentials) {
+                Config::set('filesystems.default', 's3');
+            }
+
+            Config::set('filesystems.disks.public.root', '/tmp/storage/app/public');
         }
 
 

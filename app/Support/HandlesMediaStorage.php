@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use RuntimeException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -15,7 +16,13 @@ trait HandlesMediaStorage
 
     protected function storeMediaFile(UploadedFile $file, string $directory): string
     {
-        return $file->store($directory, $this->mediaDisk());
+        $path = $file->store($directory, $this->mediaDisk());
+
+        if (! is_string($path) || $path === '') {
+            throw new RuntimeException('No se pudo guardar el archivo en el disco '.$this->mediaDisk().'.');
+        }
+
+        return $path;
     }
 
     protected function mediaUrl(string $path): string
