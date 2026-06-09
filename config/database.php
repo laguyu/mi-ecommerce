@@ -5,10 +5,27 @@ use Pdo\Mysql;
 
 $mysqlSslCa = env('MYSQL_ATTR_SSL_CA');
 $mysqlUseSsl = filter_var(env('DB_SSL', false), FILTER_VALIDATE_BOOL);
+$mysqlSslVerifyServerCert = filter_var(env('DB_SSL_VERIFY_SERVER_CERT', true), FILTER_VALIDATE_BOOL);
+
+$defaultCaBundlePaths = [
+    '/etc/ssl/certs/ca-certificates.crt',
+    '/etc/ssl/cert.pem',
+    '/etc/pki/tls/certs/ca-bundle.crt',
+];
+
+$detectedCaBundlePath = null;
+foreach ($defaultCaBundlePaths as $candidatePath) {
+    if (is_file($candidatePath)) {
+        $detectedCaBundlePath = $candidatePath;
+        break;
+    }
+}
 
 if (is_string($mysqlSslCa)) {
     $mysqlSslCa = trim($mysqlSslCa, " \t\n\r\0\x0B'\".");
 }
+
+$mysqlSslCa = $mysqlSslCa ?: $detectedCaBundlePath;
 
 return [
 
@@ -68,10 +85,12 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => $mysqlUseSsl
-                    ? ($mysqlSslCa ?: (is_file('/etc/ssl/certs/ca-certificates.crt') ? '/etc/ssl/certs/ca-certificates.crt' : null))
+                    ? $mysqlSslCa
                     : null,
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $mysqlUseSsl ? false : null,
-            ]) : [],
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $mysqlUseSsl
+                    ? $mysqlSslVerifyServerCert
+                    : null,
+            ], static fn ($value) => $value !== null) : [],
         ],
 
         'mariadb' => [
