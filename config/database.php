@@ -3,8 +3,17 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+$databaseUrl = (string) env('DB_URL', '');
+$parsedDatabaseUrl = $databaseUrl !== '' ? parse_url($databaseUrl) : false;
+
+$mysqlHost = (string) ($parsedDatabaseUrl['host'] ?? env('DB_HOST', '127.0.0.1'));
+$mysqlPort = (string) ($parsedDatabaseUrl['port'] ?? env('DB_PORT', '3306'));
+$isTiDbCloudHost = Str::contains(Str::lower($mysqlHost), 'tidbcloud.com');
+$isTiDbCloudPort = $mysqlPort === '4000';
+$isManagedMySqlRequiringSsl = $isTiDbCloudHost || $isTiDbCloudPort;
+
 $mysqlSslCa = env('MYSQL_ATTR_SSL_CA');
-$mysqlUseSsl = filter_var(env('DB_SSL', false), FILTER_VALIDATE_BOOL);
+$mysqlUseSsl = filter_var(env('DB_SSL', $isManagedMySqlRequiringSsl), FILTER_VALIDATE_BOOL);
 $mysqlSslVerifyServerCert = filter_var(env('DB_SSL_VERIFY_SERVER_CERT', true), FILTER_VALIDATE_BOOL);
 
 $defaultCaBundlePaths = [
@@ -26,6 +35,11 @@ if (is_string($mysqlSslCa)) {
 }
 
 $mysqlSslCa = $mysqlSslCa ?: $detectedCaBundlePath;
+
+if ($mysqlUseSsl && ! is_string($mysqlSslCa)) {
+    // Keep TLS enabled even when no CA bundle path is available in the runtime image.
+    $mysqlSslCa = true;
+}
 
 return [
 
