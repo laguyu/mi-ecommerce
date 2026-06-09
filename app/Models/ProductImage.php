@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ResolvesStoredMediaUrls;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProductImage extends Model
 {
     use HasFactory;
+    use ResolvesStoredMediaUrls;
 
     protected $fillable = [
         'product_id',
@@ -26,5 +28,10 @@ class ProductImage extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getUrlAttribute(?string $value): ?string
+    {
+        return $this->resolveStoredMediaUrl($value);
     }
 }

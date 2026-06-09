@@ -7,14 +7,16 @@ use App\Http\Requests\Admin\ProductRequest;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\HandlesMediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    use HandlesMediaStorage;
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
@@ -121,25 +123,12 @@ class ProductController extends Controller
         }
 
         foreach ($product->images as $image) {
-            $oldStoragePath = $this->storagePathFromPublicUrl($image->url);
-
-            if ($oldStoragePath) {
-                Storage::disk('public')->delete($oldStoragePath);
-            }
+            $this->deleteMediaByUrl((string) $image->url);
         }
 
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('status', 'Producto eliminado correctamente.');
-    }
-
-    private function storagePathFromPublicUrl(string $url): ?string
-    {
-        if (! Str::startsWith($url, '/storage/')) {
-            return null;
-        }
-
-        return Str::after($url, '/storage/');
     }
 
     private function uniqueSlug(string $name, ?int $ignoreId = null): string
@@ -169,10 +158,10 @@ class ProductController extends Controller
         $hasPrimary = $product->images()->where('is_primary', true)->exists();
 
         foreach ($uploadedFiles as $index => $file) {
-            $imagePath = $file->store('products', 'public');
+            $imagePath = $this->storeMediaFile($file, 'products');
 
             $product->images()->create([
-                'url' => Storage::url($imagePath),
+                'url' => $imagePath,
                 'alt_text' => $altText,
                 'sort_order' => ++$nextSortOrder,
                 'is_primary' => ! $hasPrimary && $index === 0,

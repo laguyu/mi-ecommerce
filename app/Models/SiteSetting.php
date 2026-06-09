@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\ResolvesStoredMediaUrls;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class SiteSetting extends Model
 {
     use HasFactory;
+    use ResolvesStoredMediaUrls;
 
     protected $appends = [
         'logo_url',
@@ -81,10 +82,6 @@ class SiteSetting extends Model
 
     public function getLogoUrlAttribute(): ?string
     {
-        if (! $this->logo_path) {
-            return null;
-        }
-
-        return Storage::url($this->logo_path);
+        return $this->resolveStoredMediaUrl($this->logo_path);
     }
 }

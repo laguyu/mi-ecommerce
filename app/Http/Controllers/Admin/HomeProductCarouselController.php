@@ -6,15 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\HomeProductCarouselRequest;
 use App\Models\HomeProductCarousel;
 use App\Models\Product;
+use App\Support\HandlesMediaStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class HomeProductCarouselController extends Controller
 {
+    use HandlesMediaStorage;
+
     public function index(): View
     {
         $carousels = HomeProductCarousel::query()
@@ -78,12 +79,12 @@ class HomeProductCarouselController extends Controller
 
         $validated = $request->validated();
 
-        $imagePath = $request->file('image_file')->store('home-carousels', 'public');
+        $imagePath = $this->storeMediaFile($request->file('image_file'), 'home-carousels');
 
         $carousel = HomeProductCarousel::query()->create([
             'title' => $validated['title'],
             'subtitle' => $validated['subtitle'] ?? null,
-            'image_url' => Storage::url($imagePath),
+            'image_url' => $imagePath,
             'sort_order' => $validated['sort_order'],
             'is_active' => $request->boolean('is_active', true),
         ]);
@@ -121,13 +122,9 @@ class HomeProductCarouselController extends Controller
         ];
 
         if ($request->hasFile('image_file')) {
-            $oldStoragePath = $this->storagePathFromPublicUrl((string) $homeProductCarousel->image_url);
-            $imagePath = $request->file('image_file')->store('home-carousels', 'public');
-            $payload['image_url'] = Storage::url($imagePath);
-
-            if ($oldStoragePath) {
-                Storage::disk('public')->delete($oldStoragePath);
-            }
+            $this->deleteMediaByUrl((string) $homeProductCarousel->image_url);
+            $imagePath = $this->storeMediaFile($request->file('image_file'), 'home-carousels');
+            $payload['image_url'] = $imagePath;
         }
 
         $homeProductCarousel->update($payload);
@@ -143,24 +140,11 @@ class HomeProductCarouselController extends Controller
 
     public function destroy(HomeProductCarousel $homeProductCarousel): RedirectResponse
     {
-        $oldStoragePath = $this->storagePathFromPublicUrl((string) $homeProductCarousel->image_url);
-
-        if ($oldStoragePath) {
-            Storage::disk('public')->delete($oldStoragePath);
-        }
+        $this->deleteMediaByUrl((string) $homeProductCarousel->image_url);
 
         $homeProductCarousel->products()->detach();
         $homeProductCarousel->delete();
 
         return redirect()->route('admin.home-product-carousels.index')->with('status', 'Carrusel eliminado correctamente.');
-    }
-
-    private function storagePathFromPublicUrl(string $url): ?string
-    {
-        if (! Str::startsWith($url, '/storage/')) {
-            return null;
-        }
-
-        return Str::after($url, '/storage/');
     }
 }

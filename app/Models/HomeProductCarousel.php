@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ResolvesStoredMediaUrls;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class HomeProductCarousel extends Model
 {
     use HasFactory;
+    use ResolvesStoredMediaUrls;
 
     protected $fillable = [
         'title',
@@ -30,5 +32,10 @@ class HomeProductCarousel extends Model
             ->withTimestamps()
             ->orderBy('home_product_carousel_product.sort_order')
             ->orderByDesc('products.id');
+    }
+
+    public function getImageUrlAttribute(?string $value): ?string
+    {
+        return $this->resolveStoredMediaUrl($value);
     }
 }

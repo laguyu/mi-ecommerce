@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\HomeSecondaryBannerRequest;
 use App\Models\HomeSecondaryBanner;
 use App\Models\Product;
+use App\Support\HandlesMediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class HomeSecondaryBannerController extends Controller
 {
+    use HandlesMediaStorage;
+
     public function index(): View
     {
         $banners = HomeSecondaryBanner::query()
@@ -36,12 +37,12 @@ class HomeSecondaryBannerController extends Controller
     {
         $validated = $request->validated();
 
-        $imagePath = $request->file('image_file')->store('home-secondary-banners', 'public');
+        $imagePath = $this->storeMediaFile($request->file('image_file'), 'home-secondary-banners');
 
         HomeSecondaryBanner::query()->create([
             'title' => $validated['title'],
             'subtitle' => $validated['subtitle'] ?? null,
-            'image_url' => Storage::url($imagePath),
+            'image_url' => $imagePath,
             'link_url' => $validated['link_url'] ?? null,
             'product_id' => $validated['product_id'] ?? null,
             'sort_order' => $validated['sort_order'],
@@ -75,13 +76,9 @@ class HomeSecondaryBannerController extends Controller
         ];
 
         if ($request->hasFile('image_file')) {
-            $oldStoragePath = $this->storagePathFromPublicUrl((string) $homeSecondaryBanner->image_url);
-            $imagePath = $request->file('image_file')->store('home-secondary-banners', 'public');
-            $payload['image_url'] = Storage::url($imagePath);
-
-            if ($oldStoragePath) {
-                Storage::disk('public')->delete($oldStoragePath);
-            }
+            $this->deleteMediaByUrl((string) $homeSecondaryBanner->image_url);
+            $imagePath = $this->storeMediaFile($request->file('image_file'), 'home-secondary-banners');
+            $payload['image_url'] = $imagePath;
         }
 
         $homeSecondaryBanner->update($payload);
@@ -91,23 +88,10 @@ class HomeSecondaryBannerController extends Controller
 
     public function destroy(HomeSecondaryBanner $homeSecondaryBanner): RedirectResponse
     {
-        $oldStoragePath = $this->storagePathFromPublicUrl((string) $homeSecondaryBanner->image_url);
-
-        if ($oldStoragePath) {
-            Storage::disk('public')->delete($oldStoragePath);
-        }
+        $this->deleteMediaByUrl((string) $homeSecondaryBanner->image_url);
 
         $homeSecondaryBanner->delete();
 
         return redirect()->route('admin.home-secondary-banners.index')->with('status', 'Banner secundario eliminado correctamente.');
-    }
-
-    private function storagePathFromPublicUrl(string $url): ?string
-    {
-        if (! Str::startsWith($url, '/storage/')) {
-            return null;
-        }
-
-        return Str::after($url, '/storage/');
     }
 }

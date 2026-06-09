@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ResolvesStoredMediaUrls;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class HomeSecondaryBanner extends Model
 {
     use HasFactory;
+    use ResolvesStoredMediaUrls;
 
     protected $fillable = [
         'title',
@@ -29,5 +31,10 @@ class HomeSecondaryBanner extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getImageUrlAttribute(?string $value): ?string
+    {
+        return $this->resolveStoredMediaUrl($value);
     }
 }

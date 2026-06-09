@@ -4,6 +4,7 @@ use Illuminate\Support\Str;
 use Pdo\Mysql;
 
 $mysqlSslCa = env('MYSQL_ATTR_SSL_CA');
+$mysqlUseSsl = filter_var(env('DB_SSL', false), FILTER_VALIDATE_BOOL);
 
 if (is_string($mysqlSslCa)) {
     $mysqlSslCa = trim($mysqlSslCa, " \t\n\r\0\x0B'\".");
@@ -65,13 +66,11 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-               'options' => extension_loaded('pdo_mysql') ? array_filter([
-                // Forzamos el uso del certificado CA nativo y universal en entornos Linux
-                PDO::MYSQL_ATTR_SSL_CA => is_file('/etc/ssl/certs/ca-certificates.crt')
-                    ? '/etc/ssl/certs/ca-certificates.crt'
-                    : true,
-                // Desactivamos la verificación estricta del nombre del host del certificado para evitar rechazos en nubes Serverless
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => $mysqlUseSsl
+                    ? ($mysqlSslCa ?: (is_file('/etc/ssl/certs/ca-certificates.crt') ? '/etc/ssl/certs/ca-certificates.crt' : null))
+                    : null,
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $mysqlUseSsl ? false : null,
             ]) : [],
         ],
 
