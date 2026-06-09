@@ -25,5 +25,14 @@
             "check": true
         }
     ],
-    "outputDirectory": "public"
+    "outputDirectory": "public",
+    "env": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "true",
+        "APP_CONFIG_CACHE": "/tmp/storage/bootstrap/cache/config.php",
+        "APP_ROUTES_CACHE": "/tmp/storage/bootstrap/cache/routes-v7.php",
+        "APP_SERVICES_CACHE": "/tmp/storage/bootstrap/cache/services.php",
+        "APP_PACKAGES_CACHE": "/tmp/storage/bootstrap/cache/packages.php",
+        "VIEW_COMPILED_PATH": "/tmp/storage/framework/views"
+    }
 }
