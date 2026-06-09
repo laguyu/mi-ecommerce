@@ -1,5 +1,13 @@
 <?php
 
+$s3Endpoint = (string) env('AWS_ENDPOINT', '');
+$isSupabaseS3Endpoint = str_contains(strtolower($s3Endpoint), '.supabase.co/storage/v1/s3');
+
+$s3UsePathStyleEndpoint = env('AWS_USE_PATH_STYLE_ENDPOINT');
+if ($s3UsePathStyleEndpoint === null || $s3UsePathStyleEndpoint === '') {
+    $s3UsePathStyleEndpoint = $isSupabaseS3Endpoint;
+}
+
 return [
 
     /*
@@ -55,7 +63,7 @@ return [
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'use_path_style_endpoint' => filter_var($s3UsePathStyleEndpoint, FILTER_VALIDATE_BOOL),
             'throw' => false,
             'report' => false,
         ],

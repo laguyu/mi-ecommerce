@@ -16,10 +16,23 @@ trait HandlesMediaStorage
 
     protected function storeMediaFile(UploadedFile $file, string $directory): string
     {
-        $path = $file->store($directory, $this->mediaDisk());
+        $disk = $this->mediaDisk();
+        $path = $file->store($directory, $disk);
 
         if (! is_string($path) || $path === '') {
-            throw new RuntimeException('No se pudo guardar el archivo en el disco '.$this->mediaDisk().'.');
+            // Some S3-compatible providers may reject the first strategy; fallback avoids silent false returns.
+            $path = Storage::disk($disk)->putFile($directory, $file, ['visibility' => 'public']);
+        }
+
+        if (! is_string($path) || $path === '') {
+            $endpoint = (string) config('filesystems.disks.s3.endpoint', '');
+            $bucket = (string) config('filesystems.disks.s3.bucket', '');
+
+            throw new RuntimeException(
+                'No se pudo guardar el archivo en el disco '.$disk
+                .'. endpoint=' . ($endpoint !== '' ? $endpoint : 'n/a')
+                .', bucket=' . ($bucket !== '' ? $bucket : 'n/a')
+            );
         }
 
         return $path;
