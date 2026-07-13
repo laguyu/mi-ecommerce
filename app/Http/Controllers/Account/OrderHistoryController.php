@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Account;
 use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Support\DatabaseEngine;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
@@ -29,7 +29,7 @@ class OrderHistoryController extends Controller
         $orders = $request->user()->orders()
             ->with('items:id,order_id,product_name,quantity,line_total')
             ->when($search !== '', function ($query) use ($search) {
-                if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true) && mb_strlen($search) >= 3) {
+                if (DatabaseEngine::supportsFullText() && mb_strlen($search) >= 3) {
                     $query->whereFullText(['order_number', 'customer_email', 'customer_full_name'], $search);
 
                     return;
@@ -91,7 +91,7 @@ class OrderHistoryController extends Controller
         $orders = $request->user()->orders()
             ->with('items:id,order_id,product_name,quantity,line_total')
             ->when($search !== '', function ($query) use ($search) {
-                if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true) && mb_strlen($search) >= 3) {
+                if (DatabaseEngine::supportsFullText() && mb_strlen($search) >= 3) {
                     $query->whereFullText(['order_number', 'customer_email', 'customer_full_name'], $search);
 
                     return;

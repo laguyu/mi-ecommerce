@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ResolvesStoredMediaUrls;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Promotion extends Model
 {
     use HasFactory;
+    use ResolvesStoredMediaUrls;
 
     protected $fillable = [
         'name',
@@ -43,5 +45,10 @@ class Promotion extends Model
             ->where('status', 'active')
             ->where('starts_at', '<=', now())
             ->where('ends_at', '>=', now());
+    }
+
+    public function getBannerImageUrlAttribute(?string $value): ?string
+    {
+        return $this->resolveStoredMediaUrl($value);
     }
 }

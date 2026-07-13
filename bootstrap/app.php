@@ -1,5 +1,24 @@
 <?php
 
+// 1. CONTROL DE ALMACENAMIENTO VIRTUAL PARA VERCEL (Colocar al inicio absoluto)
+if (isset($_ENV['VERCEL'])) {
+    $storagePath = '/tmp/storage';
+    $requiredPaths = [
+        $storagePath . '/framework/views',
+        $storagePath . '/framework/cache',
+        $storagePath . '/framework/sessions',
+        $storagePath . '/bootstrap/cache'
+    ];
+    foreach ($requiredPaths as $path) {
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+    }
+    // Obligamos a Laravel a usar la carpeta /tmp en lugar de su storage interno
+    $_ENV['APP_STORAGE'] = $storagePath;
+}
+
+
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureRole;

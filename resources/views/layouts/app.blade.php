@@ -186,6 +186,10 @@
                             <strong>Sitio</strong>
                             <small>Logo y footer</small>
                         </a>
+                        <a class="top-nav__menu-item {{ request()->routeIs('admin.contact-messages.*') ? 'top-nav__menu-item--active' : '' }}" href="{{ route('admin.contact-messages.index') }}">
+                            <strong>Contacto</strong>
+                            <small>Mensajes recibidos</small>
+                        </a>
                         <a class="top-nav__menu-item {{ request()->routeIs('admin.newsletter-subscribers.*') ? 'top-nav__menu-item--active' : '' }}" href="{{ route('admin.newsletter-subscribers.index') }}">
                             <strong>Newsletter</strong>
                             <small>Suscriptores</small>

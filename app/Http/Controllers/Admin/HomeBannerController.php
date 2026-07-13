@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\HomeBannerRequest;
 use App\Models\HomeBanner;
 use App\Models\Product;
+use App\Support\HandlesMediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class HomeBannerController extends Controller
 {
+    use HandlesMediaStorage;
+
     public function index(): View
     {
         $banners = HomeBanner::query()
@@ -36,12 +37,12 @@ class HomeBannerController extends Controller
     {
         $validated = $request->validated();
 
-        $imagePath = $request->file('image_file')->store('home-banners', 'public');
+        $imagePath = $this->storeMediaFile($request->file('image_file'), 'home-banners');
 
         HomeBanner::query()->create([
             'title' => $validated['title'],
             'subtitle' => $validated['subtitle'] ?? null,
-            'image_url' => Storage::url($imagePath),
+            'image_url' => $imagePath,
             'link_url' => $validated['link_url'] ?? null,
             'product_id' => $validated['product_id'] ?? null,
             'sort_order' => $validated['sort_order'],
@@ -75,13 +76,9 @@ class HomeBannerController extends Controller
         ];
 
         if ($request->hasFile('image_file')) {
-            $oldStoragePath = $this->storagePathFromPublicUrl($homeBanner->image_url);
-            $imagePath = $request->file('image_file')->store('home-banners', 'public');
-            $payload['image_url'] = Storage::url($imagePath);
-
-            if ($oldStoragePath) {
-                Storage::disk('public')->delete($oldStoragePath);
-            }
+            $this->deleteMediaByUrl((string) $homeBanner->image_url);
+            $imagePath = $this->storeMediaFile($request->file('image_file'), 'home-banners');
+            $payload['image_url'] = $imagePath;
         }
 
         $homeBanner->update($payload);
@@ -91,23 +88,10 @@ class HomeBannerController extends Controller
 
     public function destroy(HomeBanner $homeBanner): RedirectResponse
     {
-        $oldStoragePath = $this->storagePathFromPublicUrl($homeBanner->image_url);
-
-        if ($oldStoragePath) {
-            Storage::disk('public')->delete($oldStoragePath);
-        }
+        $this->deleteMediaByUrl((string) $homeBanner->image_url);
 
         $homeBanner->delete();
 
         return redirect()->route('admin.home-banners.index')->with('status', 'Banner principal eliminado correctamente.');
-    }
-
-    private function storagePathFromPublicUrl(string $url): ?string
-    {
-        if (! Str::startsWith($url, '/storage/')) {
-            return null;
-        }
-
-        return Str::after($url, '/storage/');
     }
 }

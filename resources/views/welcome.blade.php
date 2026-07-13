@@ -16,6 +16,7 @@
             'urls' => [
                 'home' => route('storefront.home'),
                 'catalogo' => route('storefront.catalogo'),
+                'contacto' => route('storefront.contacto'),
                 'favoritos' => route('storefront.favoritos'),
                 'carrito' => route('storefront.carrito'),
                 'checkout' => route('storefront.checkout'),

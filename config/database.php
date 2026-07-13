@@ -3,6 +3,44 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+$databaseUrl = (string) env('DB_URL', '');
+$parsedDatabaseUrl = $databaseUrl !== '' ? parse_url($databaseUrl) : false;
+
+$mysqlHost = (string) ($parsedDatabaseUrl['host'] ?? env('DB_HOST', '127.0.0.1'));
+$mysqlPort = (string) ($parsedDatabaseUrl['port'] ?? env('DB_PORT', '3306'));
+$isTiDbCloudHost = Str::contains(Str::lower($mysqlHost), 'tidbcloud.com');
+$isTiDbCloudPort = $mysqlPort === '4000';
+$isManagedMySqlRequiringSsl = $isTiDbCloudHost || $isTiDbCloudPort;
+
+$mysqlSslCa = env('MYSQL_ATTR_SSL_CA');
+$mysqlUseSsl = filter_var(env('DB_SSL', $isManagedMySqlRequiringSsl), FILTER_VALIDATE_BOOL);
+$mysqlSslVerifyServerCert = filter_var(env('DB_SSL_VERIFY_SERVER_CERT', true), FILTER_VALIDATE_BOOL);
+
+$defaultCaBundlePaths = [
+    '/etc/ssl/certs/ca-certificates.crt',
+    '/etc/ssl/cert.pem',
+    '/etc/pki/tls/certs/ca-bundle.crt',
+];
+
+$detectedCaBundlePath = null;
+foreach ($defaultCaBundlePaths as $candidatePath) {
+    if (is_file($candidatePath)) {
+        $detectedCaBundlePath = $candidatePath;
+        break;
+    }
+}
+
+if (is_string($mysqlSslCa)) {
+    $mysqlSslCa = trim($mysqlSslCa, " \t\n\r\0\x0B'\".");
+}
+
+$mysqlSslCa = $mysqlSslCa ?: $detectedCaBundlePath;
+
+if ($mysqlUseSsl && ! is_string($mysqlSslCa)) {
+    // Keep TLS enabled even when no CA bundle path is available in the runtime image.
+    $mysqlSslCa = true;
+}
+
 return [
 
     /*
@@ -60,8 +98,13 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+                PDO::MYSQL_ATTR_SSL_CA => $mysqlUseSsl
+                    ? $mysqlSslCa
+                    : null,
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $mysqlUseSsl
+                    ? $mysqlSslVerifyServerCert
+                    : null,
+            ], static fn ($value) => $value !== null) : [],
         ],
 
         'mariadb' => [
@@ -80,7 +123,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => $mysqlSslCa,
             ]) : [],
         ],
 

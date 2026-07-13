@@ -247,7 +247,11 @@ class EcommerceSeeder extends Seeder
             }
         }
 
-        $this->seedBulkProducts($categoryIds, $brandIds, 1000);
+        $bulkCount = (int) env('SEED_BULK_PRODUCTS_COUNT', app()->environment('production') ? 0 : 1000);
+
+        if ($bulkCount > 0) {
+            $this->seedBulkProducts($categoryIds, $brandIds, $bulkCount);
+        }
     }
 
     private function seedBulkProducts(array $categoryIds, array $brandIds, int $count): void

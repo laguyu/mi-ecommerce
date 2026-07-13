@@ -1,2 +1,14 @@
 *
 !.gitignore
+!home-banners/
+!home-banners/**
+!home-carousels/
+!home-carousels/**
+!home-secondary-banners/
+!home-secondary-banners/**
+!products/
+!products/**
+!promotions/
+!promotions/**
+!site/
+!site/**

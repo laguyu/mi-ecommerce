@@ -11,6 +11,7 @@ const props = defineProps({
     ordersUrl: { type: String, default: '' },
     homeUrl: { type: String, required: true },
     catalogUrl: { type: String, required: true },
+    contactUrl: { type: String, required: true },
     categories: { type: Array, default: () => [] },
     favoritesUrl: { type: String, required: true },
     favoritesCount: { type: Number, default: 0 },
@@ -186,6 +187,11 @@ function setHoveredCategory(categoryId) {
                         <small class="menu-mobile__item-hint">Ver productos</small>
                     </button>
 
+                    <button type="button" class="menu-mobile__item" @click="navigateTo(contactUrl)">
+                        <span class="menu-mobile__item-label">Contacto</span>
+                        <small class="menu-mobile__item-hint">Escribir al ecommerce</small>
+                    </button>
+
                     <button type="button" class="menu-mobile__item" @click="mobileCategoriesOpen = !mobileCategoriesOpen">
                         <span class="menu-mobile__item-label">Categorias</span>
                         <small class="menu-mobile__item-hint">Padres y subcategorias</small>
@@ -259,6 +265,15 @@ function setHoveredCategory(categoryId) {
             >
                 <span class="menu-item__label">Catalogo</span>
                 <small class="menu-item__hint">Ver productos</small>
+            </button>
+
+            <button
+                type="button"
+                :class="['menu-item', activeView === 'contacto' && 'menu-item--active']"
+                @click="navigateTo(contactUrl)"
+            >
+                <span class="menu-item__label">Contacto</span>
+                <small class="menu-item__hint">Hablar con nosotros</small>
             </button>
 
             <div class="menu-dropdown" @mouseenter="openCategories" @mouseleave="closeCategories">

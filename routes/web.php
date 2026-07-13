@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\HomeBannerController as AdminHomeBannerController;
 use App\Http\Controllers\Admin\HomeProductCarouselController as AdminHomeProductCarouselController;
 use App\Http\Controllers\Admin\HomeSecondaryBannerController as AdminHomeSecondaryBannerController;
+use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Admin\NewsletterSubscriberController as AdminNewsletterSubscriberController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SiteSettingController as AdminSiteSettingController;
@@ -16,68 +17,14 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PolicyPageController;
 use App\Http\Controllers\WebhookController;
-use App\Models\Category;
-use App\Models\Order;
 use App\Models\Product;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
-
-if (! function_exists('storefront_view')) {
-    function storefront_view(string $initialView = 'home', ?int $productId = null)
-    {
-        return view('welcome', [
-            'isBackoffice' => false,
-            'initialStorefrontView' => $initialView,
-            'initialStorefrontProductId' => $productId,
-        ]);
-    }
-}
-
-if (! function_exists('backoffice_dashboard_view')) {
-    function backoffice_dashboard_view()
-    {
-        $user = request()->user();
-
-        if (! $user || $user->role === 'customer') {
-            abort(403);
-        }
-
-        $stats = [
-            'orders_today' => null,
-            'orders_pending' => null,
-            'products' => null,
-            'categories' => null,
-            'users' => null,
-        ];
-
-        if ($user->hasPermission('view_admin_orders')) {
-            $stats['orders_today'] = Order::query()->whereDate('created_at', today())->count();
-            $stats['orders_pending'] = Order::query()->where('status', 'pending_payment')->count();
-        }
-
-        if ($user->hasPermission('manage_products')) {
-            $stats['products'] = Product::query()->count();
-        }
-
-        if ($user->hasPermission('manage_categories')) {
-            $stats['categories'] = Category::query()->count();
-        }
-
-        if ($user->hasPermission('manage_users')) {
-            $stats['users'] = User::query()->count();
-        }
-
-        return view('welcome', [
-            'isBackoffice' => true,
-            'stats' => $stats,
-        ]);
-    }
-}
 
 Route::get('/', function () {
     $user = request()->user();
@@ -98,6 +45,7 @@ Route::prefix('tienda')->name('storefront.')->group(function () {
     Route::get('/', fn () => redirect()->route('storefront.home'));
     Route::get('/home', fn () => storefront_view('home'))->name('home');
     Route::get('/catalogo', fn () => storefront_view('catalogo'))->name('catalogo');
+    Route::get('/contacto', fn () => storefront_view('contacto'))->name('contacto');
     Route::get('/favoritos', fn () => storefront_view('favoritos'))->name('favoritos');
     Route::get('/carrito', fn () => storefront_view('carrito'))->name('carrito');
     Route::get('/checkout', fn () => storefront_view('checkout'))->name('checkout');
@@ -112,6 +60,7 @@ Route::get('/api/home-main-banner', [CatalogController::class, 'mainBanner']);
 Route::get('/api/home-secondary-banners', [CatalogController::class, 'secondaryBanners']);
 Route::get('/api/home-product-carousels', [CatalogController::class, 'homeProductCarousels']);
 Route::get('/api/home-promotion-banner', [CatalogController::class, 'promotionBanner']);
+Route::post('/api/contact-messages', [ContactController::class, 'store']);
 Route::get('/api/categories', [CatalogController::class, 'categories']);
 Route::get('/api/brands', [CatalogController::class, 'brands']);
 Route::get('/api/catalog', [CatalogController::class, 'index']);
@@ -191,6 +140,9 @@ Route::middleware(['auth', 'permission:manage_products'])->prefix('admin')->name
 Route::middleware(['auth', 'permission:manage_site_settings'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/site-settings', [AdminSiteSettingController::class, 'edit'])->name('site-settings.edit');
     Route::put('/site-settings', [AdminSiteSettingController::class, 'update'])->name('site-settings.update');
+    Route::get('/contact-messages', [AdminContactMessageController::class, 'index'])->name('contact-messages.index');
+    Route::get('/contact-messages/{contactMessage}', [AdminContactMessageController::class, 'show'])->name('contact-messages.show');
+    Route::delete('/contact-messages/{contactMessage}', [AdminContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
     Route::get('/newsletter-subscribers', [AdminNewsletterSubscriberController::class, 'index'])->name('newsletter-subscribers.index');
     Route::get('/newsletter-subscribers/exportar', [AdminNewsletterSubscriberController::class, 'export'])->name('newsletter-subscribers.export');
     Route::patch('/newsletter-subscribers/{newsletterSubscriber}/toggle', [AdminNewsletterSubscriberController::class, 'toggle'])->name('newsletter-subscribers.toggle');

@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -59,7 +60,15 @@ class AuthController extends Controller
             'role' => 'customer',
         ]);
 
-        Mail::to($user->email)->send(new WelcomeUserMail($user));
+        try {
+            Mail::to($user->email)->send(new WelcomeUserMail($user));
+        } catch (\Throwable $exception) {
+            Log::warning('No se pudo enviar el correo de bienvenida.', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $exception->getMessage(),
+            ]);
+        }
 
         Auth::login($user);
         $request->session()->regenerate();
@@ -91,9 +100,20 @@ class AuthController extends Controller
             'email.email' => 'Ingresa un correo electrónico válido.',
         ]);
 
-        $status = Password::sendResetLink([
-            'email' => $validated['email'],
-        ]);
+        try {
+            $status = Password::sendResetLink([
+                'email' => $validated['email'],
+            ]);
+        } catch (\Throwable $exception) {
+            Log::warning('No se pudo enviar el enlace de restablecimiento de contraseña.', [
+                'email' => $validated['email'],
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'email' => 'No se pudo enviar el correo de recuperación. Intenta más tarde.',
+            ]);
+        }
 
         if ($status === Password::RESET_LINK_SENT) {
             return back()->with('status', __($status));

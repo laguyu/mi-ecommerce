@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SiteSettingRequest;
 use App\Models\SiteSetting;
+use App\Support\HandlesMediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SiteSettingController extends Controller
 {
+    use HandlesMediaStorage;
+
     public function edit(): View
     {
         $siteSetting = SiteSetting::current();
@@ -88,26 +89,13 @@ class SiteSettingController extends Controller
         }
 
         if ($request->hasFile('logo_file')) {
-            $oldStoragePath = $this->storagePathFromPublicUrl((string) $siteSetting->logo_path);
-            $logoPath = $request->file('logo_file')->store('site', 'public');
+            $this->deleteMediaByUrl((string) $siteSetting->logo_url);
+            $logoPath = $this->storeMediaFile($request->file('logo_file'), 'site');
             $payload['logo_path'] = $logoPath;
-
-            if ($oldStoragePath) {
-                Storage::disk('public')->delete($oldStoragePath);
-            }
         }
 
         $siteSetting->update($payload);
 
         return redirect()->route('admin.site-settings.edit')->with('status', 'Configuracion del sitio actualizada.');
-    }
-
-    private function storagePathFromPublicUrl(string $url): ?string
-    {
-        if (! Str::startsWith($url, '/storage/')) {
-            return null;
-        }
-
-        return Str::after($url, '/storage/');
     }
 }

@@ -1,15 +1,10 @@
 services:
   - type: web
     name: mi-ecommerce
-    runtime: php
+    runtime: docker
     plan: free
     autoDeploy: true
     rootDir: .
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      npm install
-      npm run build
-    startCommand: php artisan serve --host 0.0.0.0 --port $PORT
     healthCheckPath: /login
     envVars:
       - key: APP_NAME
@@ -20,36 +15,54 @@ services:
         value: "false"
       - key: APP_URL
         sync: false
+      - key: FORCE_HTTPS
+        value: "true"
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: RUN_DEMO_SEED
+        value: "true"
+      - key: RUN_AUTH_SEED
+        value: "true"
+      - key: SEED_BULK_PRODUCTS_COUNT
+        value: "0"
       - key: APP_KEY
         sync: false
+      - key: VIEW_COMPILED_PATH
+        value: /var/www/html/storage/framework/views
 
       - key: DB_CONNECTION
-        value: pgsql
+        value: mysql
       - key: DB_HOST
         sync: false
       - key: DB_PORT
-        value: "5432"
+        value: "4000"
       - key: DB_DATABASE
         sync: false
       - key: DB_USERNAME
         sync: false
       - key: DB_PASSWORD
         sync: false
-      - key: DB_SSLMODE
-        value: require
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
 
       - key: CACHE_STORE
-        value: database
+        value: file
       - key: SESSION_DRIVER
-        value: database
+        value: file
       - key: QUEUE_CONNECTION
-        value: database
+        value: sync
 
       - key: FILESYSTEM_DISK
-        value: local
+        value: public
 
       - key: MAIL_MAILER
-        value: log
+        value: smtp
+      - key: MAIL_HOST
+        value: in-v3.mailjet.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_SCHEME
+        value: tls
       - key: MAIL_FROM_ADDRESS
         value: no-reply@example.com
       - key: MAIL_FROM_NAME

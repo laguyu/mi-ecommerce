@@ -6,15 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PromotionRequest;
 use App\Models\Product;
 use App\Models\Promotion;
+use App\Support\HandlesMediaStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PromotionController extends Controller
 {
+    use HandlesMediaStorage;
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
@@ -54,9 +55,9 @@ class PromotionController extends Controller
         ]);
 
         if ($request->hasFile('banner_image_file')) {
-            $bannerPath = $request->file('banner_image_file')->store('promotions', 'public');
+            $bannerPath = $this->storeMediaFile($request->file('banner_image_file'), 'promotions');
             $promotion->update([
-                'banner_image_url' => Storage::url($bannerPath),
+                'banner_image_url' => $bannerPath,
             ]);
         }
 
@@ -124,10 +125,10 @@ class PromotionController extends Controller
         ]);
 
         $removeBannerImage = $request->boolean('remove_banner_image');
-        $oldStoragePath = $this->storagePathFromPublicUrl((string) $promotion->banner_image_url);
+        $currentBannerUrl = (string) $promotion->banner_image_url;
 
-        if ($removeBannerImage && $oldStoragePath) {
-            Storage::disk('public')->delete($oldStoragePath);
+        if ($removeBannerImage) {
+            $this->deleteMediaByUrl($currentBannerUrl);
         }
 
         if ($removeBannerImage) {
@@ -137,13 +138,13 @@ class PromotionController extends Controller
         }
 
         if ($request->hasFile('banner_image_file')) {
-            if (! $removeBannerImage && $oldStoragePath) {
-                Storage::disk('public')->delete($oldStoragePath);
+            if (! $removeBannerImage) {
+                $this->deleteMediaByUrl($currentBannerUrl);
             }
 
-            $bannerPath = $request->file('banner_image_file')->store('promotions', 'public');
+            $bannerPath = $this->storeMediaFile($request->file('banner_image_file'), 'promotions');
             $promotion->update([
-                'banner_image_url' => Storage::url($bannerPath),
+                'banner_image_url' => $bannerPath,
             ]);
         }
 
@@ -152,25 +153,13 @@ class PromotionController extends Controller
         return redirect()->route('admin.promotions.index')->with('status', 'Promocion actualizada correctamente.');
     }
 
-    private function storagePathFromPublicUrl(string $url): ?string
-    {
-        if (! Str::startsWith($url, '/storage/')) {
-            return null;
-        }
-
-        return Str::after($url, '/storage/');
-    }
-
     public function destroy(Promotion $promotion): RedirectResponse
     {
         if (! request()->user()?->hasPermission('delete_products')) {
             abort(403, 'No autorizado.');
         }
 
-        $bannerStoragePath = $this->storagePathFromPublicUrl((string) $promotion->banner_image_url);
-        if ($bannerStoragePath) {
-            Storage::disk('public')->delete($bannerStoragePath);
-        }
+        $this->deleteMediaByUrl((string) $promotion->banner_image_url);
 
         $promotion->products()->detach();
         $promotion->delete();
