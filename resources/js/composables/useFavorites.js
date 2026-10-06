@@ -12,6 +12,12 @@ export function useFavorites(storefrontIsAuthenticated, onToast) {
     const favoritesCount = computed(() => favoriteIds.value.length);
 
     async function loadFavoriteIds() {
+        if (!storefrontIsAuthenticated.value) {
+            favoriteIds.value = [];
+            favoritesAuthenticatedByApi.value = false;
+            return;
+        }
+
         try {
             const response = await fetch('/api/favorites/ids', {
                 headers: {
