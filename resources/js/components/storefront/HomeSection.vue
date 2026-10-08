@@ -253,27 +253,50 @@ onUnmounted(() => {
                 </div>
 
                 <div class="hero-actions">
-                    <button @click="emit('open-product', currentSlide)">Ver ficha</button>
+                    <button class="hero-action-btn hero-action-btn--primary" @click="emit('open-product', currentSlide)">
+                        <span>Ver detalles</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
                     <button
-                        class="ghost"
+                        class="ghost hero-action-btn"
                         :disabled="isSoldOut(currentSlide)"
                         @click="emit('add-to-cart', currentSlide)"
                     >
-                        {{ isSoldOut(currentSlide) ? 'Agotado' : 'Agregar al carrito' }}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        <span>{{ isSoldOut(currentSlide) ? 'Agotado' : 'Agregar al carrito' }}</span>
                     </button>
                     <button
                         type="button"
                         class="ghost favorite-toggle-inline"
                         :class="isFavorite(currentSlide.id) && 'favorite-toggle-inline--active'"
                         @click="emit('toggle-favorite', currentSlide)"
+                        :aria-label="isFavorite(currentSlide.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
                     >
-                        {{ isFavorite(currentSlide.id) ? '❤ En favoritos' : '♡ Favorito' }}
+                        <svg class="heart-icon" viewBox="0 0 24 24" :fill="isFavorite(currentSlide.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                        <span>{{ isFavorite(currentSlide.id) ? 'En favoritos' : 'Favorito' }}</span>
                     </button>
                 </div>
             </div>
 
-            <button class="carousel-btn left" @click="prevSlide">&#10094;</button>
-            <button class="carousel-btn right" @click="nextSlide">&#10095;</button>
+            <button class="carousel-btn left" @click="prevSlide" aria-label="Slide anterior">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;" aria-hidden="true">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <button class="carousel-btn right" @click="nextSlide" aria-label="Slide siguiente">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
 
             <div class="dots">
                 <button
@@ -281,32 +304,45 @@ onUnmounted(() => {
                     :key="product.id"
                     :class="['dot', carouselIndex === index && 'dot--active']"
                     @click="setSlide(index)"
+                    :aria-label="`Ir al slide ${index + 1}`"
                 ></button>
             </div>
         </article>
 
         <div class="mini-grid" v-if="homeProducts.length > 0">
             <article v-for="item in homeProducts.slice(0, 4)" :key="`mini-${item.id}`" class="mini-card">
-                <img :src="item.image" :alt="item.name" />
-                <div>
+                <div class="mini-card__image-wrap">
+                    <img :src="item.image" :alt="item.name" />
+                    <button
+                        type="button"
+                        class="favorite-floating-btn"
+                        :class="isFavorite(item.id) && 'favorite-floating-btn--active'"
+                        @click.stop="emit('toggle-favorite', item)"
+                        :aria-label="isFavorite(item.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                    >
+                        <svg viewBox="0 0 24 24" :fill="isFavorite(item.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                    <span v-if="item.has_discount" class="discount-badge discount-badge--floating">-{{ item.discount_percentage }}%</span>
+                </div>
+                <div class="mini-card__body">
+                    <p class="category">{{ item.category_path || item.category }}</p>
                     <h4>{{ item.name }}</h4>
-                    <span v-if="item.has_discount" class="discount-badge">-{{ item.discount_percentage }}%</span>
                     <p v-if="isSoldOut(item)" class="sold-out">Agotado</p>
                     <div class="price-stack">
-                        <small v-if="item.has_discount" class="price-label">Antes</small>
                         <small v-if="item.has_discount" class="price-old">{{ formatCurrency(item.original_price) }}</small>
-                        <small class="price-label">Ahora</small>
                         <p class="price-current">{{ formatCurrency(item.price) }}</p>
                     </div>
                     <div class="mini-card-actions">
-                        <button class="ghost" @click="emit('open-product', item)">Ver producto</button>
+                        <button class="ghost" @click="emit('open-product', item)">Ver ficha</button>
                         <button
-                            type="button"
-                            class="ghost favorite-toggle-inline"
-                            :class="isFavorite(item.id) && 'favorite-toggle-inline--active'"
-                            @click="emit('toggle-favorite', item)"
+                            class="mini-card-actions__cart"
+                            :disabled="isSoldOut(item)"
+                            @click="emit('add-to-cart', item)"
+                            title="Agregar al carrito"
                         >
-                            {{ isFavorite(item.id) ? '❤' : '♡' }}
+                            {{ isSoldOut(item) ? 'Agotado' : '+ Agregar' }}
                         </button>
                     </div>
                 </div>
@@ -323,7 +359,7 @@ onUnmounted(() => {
                     <img :src="module.image" :alt="module.title" />
                 </div>
                 <div class="home-carousel-module__copy">
-                    <p>Carrusel de productos</p>
+                    <p class="home-carousel-module__badge">Colección Destacada</p>
                     <h3>{{ module.title }}</h3>
                     <small>{{ module.subtitle }}</small>
                 </div>
@@ -331,27 +367,27 @@ onUnmounted(() => {
 
             <div class="home-carousel-module__grid" v-if="Array.isArray(module.products) && module.products.length > 0">
                 <article v-for="item in module.products" :key="`module-product-${module.id}-${item.id}`" class="home-carousel-product-card">
-                    <img :src="item.image" :alt="item.name" />
+                    <div class="home-carousel-product-card__image-wrap" @click="emit('open-product', item)">
+                        <img :src="item.image" :alt="item.name" />
+                        <span v-if="item.has_discount" class="discount-badge discount-badge--floating">-{{ item.discount_percentage }}%</span>
+                        <span v-if="isSoldOut(item)" class="sold-out sold-out--floating">Agotado</span>
+                    </div>
                     <div class="home-carousel-product-card__body">
                         <p class="category">{{ item.category_path || item.category }}</p>
                         <h4>{{ item.name }}</h4>
-                        <span v-if="item.has_discount" class="discount-badge">-{{ item.discount_percentage }}%</span>
-                        <p v-if="isSoldOut(item)" class="sold-out">Agotado</p>
                         <div class="price-stack">
-                            <small v-if="item.has_discount" class="price-label">Antes</small>
                             <small v-if="item.has_discount" class="price-old">{{ formatCurrency(item.original_price) }}</small>
-                            <small class="price-label">Ahora</small>
                             <p class="price-current">{{ formatCurrency(item.price) }}</p>
                         </div>
                         <div class="home-carousel-actions">
-                            <button class="home-carousel-btn home-carousel-btn--primary" @click="emit('open-product', item)">Ver ficha</button>
+                            <button class="home-carousel-btn home-carousel-btn--primary" @click="emit('open-product', item)">Ficha</button>
                             <button
                                 type="button"
                                 class="home-carousel-btn home-carousel-btn--accent"
                                 :disabled="isSoldOut(item)"
                                 @click="emit('add-to-cart', item)"
                             >
-                                {{ isSoldOut(item) ? 'Agotado' : 'Agregar al carrito' }}
+                                {{ isSoldOut(item) ? 'Agotado' : 'Agregar' }}
                             </button>
                             <button
                                 type="button"
@@ -360,7 +396,9 @@ onUnmounted(() => {
                                 @click="emit('toggle-favorite', item)"
                                 :aria-label="isFavorite(item.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
                             >
-                                {{ isFavorite(item.id) ? '❤' : '♡' }}
+                                <svg viewBox="0 0 24 24" :fill="isFavorite(item.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;" aria-hidden="true">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
                             </button>
                         </div>
                     </div>

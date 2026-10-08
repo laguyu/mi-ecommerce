@@ -75,45 +75,72 @@ watch(
 <template>
     <section class="catalogo">
         <div class="favorites-banner">
-            <h2>Catalogo de favoritos</h2>
-            <p>Guarda tus productos preferidos para volver rapido cuando quieras comprarlos.</p>
+            <div class="favorites-banner__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:28px;height:28px;color:#ef4444;">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </div>
+            <div>
+                <h2>Mis Productos Favoritos</h2>
+                <p>Guarda tus artículos preferidos para encontrarlos rápido cuando decidas comprarlos.</p>
+            </div>
         </div>
 
-        <p v-if="!isAuthenticated" class="muted">Inicia sesion para ver y gestionar tus favoritos.</p>
+        <div v-if="!isAuthenticated" class="favorites-empty-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;margin-bottom:0.5rem;color:#94a3b8;">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <p class="muted">Inicia sesión con tu cuenta para ver y guardar tus productos favoritos.</p>
+        </div>
         <p v-else-if="loading" class="muted">Cargando favoritos...</p>
         <p v-else-if="error" class="error-block">{{ error }}</p>
-        <p v-else-if="favorites.length === 0" class="muted">Aun no tienes productos favoritos. Agrega corazones desde Home o Catalogo.</p>
+        <div v-else-if="favorites.length === 0" class="favorites-empty-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;margin-bottom:0.5rem;color:#94a3b8;">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <p class="muted">Aún no tienes productos en tu lista de favoritos.</p>
+            <small>Haz clic en el corazón de cualquier producto para guardarlo aquí.</small>
+        </div>
 
         <div v-else class="grid">
             <article v-for="product in favorites" :key="product.id" class="card">
-                <img :src="product.image" :alt="product.name" @click="emit('open-product', product)" />
+                <div class="card__image-wrap" @click="emit('open-product', product)">
+                    <img :src="product.image" :alt="product.name" />
+                    <span v-if="product.has_discount" class="discount-badge discount-badge--floating">-{{ product.discount_percentage }}%</span>
+                    <span v-if="isSoldOut(product)" class="sold-out sold-out--floating">Agotado</span>
+                    <button
+                        type="button"
+                        class="favorite-floating-btn favorite-floating-btn--active"
+                        title="Quitar de favoritos"
+                        aria-label="Quitar de favoritos"
+                        @click.stop="emit('toggle-favorite', product)"
+                    >
+                        <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                </div>
 
                 <div class="card-body">
                     <div class="card-head-actions">
                         <p v-if="product.brand_name" class="brand">{{ product.brand_name }}</p>
-                        <button
-                            type="button"
-                            class="favorite-toggle favorite-toggle--active"
-                            title="Quitar de favoritos"
-                            aria-label="Quitar de favoritos"
-                            @click="emit('toggle-favorite', product)"
-                        >
-                            ❤
-                        </button>
+                        <p class="category">{{ product.category_path || product.category }}</p>
                     </div>
 
-                    <p class="category">{{ product.category_path || product.category }}</p>
-                    <h3>{{ product.name }}</h3>
-                    <p class="sku">{{ product.sku }}</p>
-                    <p v-if="isSoldOut(product)" class="sold-out">Agotado</p>
+                    <h3 class="card-title" @click="emit('open-product', product)">{{ product.name }}</h3>
+                    <p class="sku">SKU: {{ product.sku }}</p>
                     <p class="desc">{{ product.description }}</p>
 
                     <div class="row">
-                        <strong>{{ formatCurrency(product.price) }}</strong>
+                        <div class="price-stack">
+                            <small v-if="product.has_discount" class="price-old">{{ formatCurrency(product.original_price) }}</small>
+                            <strong class="price-current">{{ formatCurrency(product.price) }}</strong>
+                        </div>
                         <div class="row-actions">
                             <button class="ghost" @click="emit('open-product', product)">Ficha</button>
-                            <button :disabled="isSoldOut(product)" @click="emit('add-to-cart', product)">
-                                {{ isSoldOut(product) ? 'Agotado' : 'Agregar' }}
+                            <button class="action-add-btn" :disabled="isSoldOut(product)" @click="emit('add-to-cart', product)">
+                                {{ isSoldOut(product) ? 'Agotado' : '+ Agregar' }}
                             </button>
                         </div>
                     </div>

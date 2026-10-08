@@ -403,39 +403,41 @@ onUnmounted(() => {
 
         <div class="grid">
             <article v-for="product in products" :key="product.id" class="card">
-                <img :src="product.image" :alt="product.name" @click="emit('open-product', product)" />
+                <div class="card__image-wrap" @click="emit('open-product', product)">
+                    <img :src="product.image" :alt="product.name" />
+                    <span v-if="product.has_discount" class="discount-badge discount-badge--floating">-{{ product.discount_percentage }}%</span>
+                    <span v-if="isSoldOut(product)" class="sold-out sold-out--floating">Agotado</span>
+                    <button
+                        type="button"
+                        class="favorite-floating-btn"
+                        :class="isFavorite(product.id) && 'favorite-floating-btn--active'"
+                        :title="isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                        :aria-label="isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                        @click.stop="emit('toggle-favorite', product)"
+                    >
+                        <svg viewBox="0 0 24 24" :fill="isFavorite(product.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                </div>
 
                 <div class="card-body">
                     <div class="card-head-actions">
                         <p v-if="product.brand_name" class="brand">{{ product.brand_name }}</p>
-                        <button
-                            type="button"
-                            class="favorite-toggle"
-                            :class="isFavorite(product.id) && 'favorite-toggle--active'"
-                            :title="isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
-                            :aria-label="isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
-                            @click="emit('toggle-favorite', product)"
-                        >
-                            {{ isFavorite(product.id) ? '❤' : '♡' }}
-                        </button>
+                        <p class="category">{{ product.category_path || product.category }}</p>
                     </div>
-                    <p class="category">{{ product.category_path || product.category }}</p>
-                    <h3>{{ product.name }}</h3>
-                    <span v-if="product.has_discount" class="discount-badge">-{{ product.discount_percentage }}%</span>
-                    <p class="sku">{{ product.sku }}</p>
-                    <p v-if="isSoldOut(product)" class="sold-out">Agotado</p>
+                    <h3 class="card-title" @click="emit('open-product', product)">{{ product.name }}</h3>
+                    <p class="sku">SKU: {{ product.sku }}</p>
                     <p class="desc">{{ product.description }}</p>
 
                     <div class="row">
                         <div class="price-stack">
-                            <small v-if="product.has_discount" class="price-label">Antes</small>
                             <small v-if="product.has_discount" class="price-old">{{ formatCurrency(product.original_price) }}</small>
-                            <small class="price-label">Ahora</small>
                             <strong class="price-current">{{ formatCurrency(product.price) }}</strong>
                         </div>
                         <div class="row-actions">
-                            <button class="ghost" @click="emit('open-product', product)">Ficha</button>
-                            <button :disabled="isSoldOut(product)" @click="emit('add-to-cart', product)">
+                            <button class="ghost" @click="emit('open-product', product)" title="Ver ficha de producto">Ficha</button>
+                            <button class="action-add-btn" :disabled="isSoldOut(product)" @click="emit('add-to-cart', product)">
                                 {{ isSoldOut(product) ? 'Agotado' : 'Agregar' }}
                             </button>
                         </div>
